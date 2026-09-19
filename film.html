@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>同志的长征 · The Comrade's Long March</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Anonymous+Pro:wght@400;700&family=Noto+Sans+SC:wght@500;900&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --red: #c8102e; --red-deep: #9e0b22; --red-ink: #6b0717;
+    --paper: #f6f1e6; --white: #fff; --ink: #2a1a1a;
+    --zh: "Noto Sans SC", "PingFang SC", sans-serif;
+    --display: "Anton", Impact, sans-serif;
+    --mono: "Anonymous Pro", Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  body { font-family: var(--mono); color: var(--ink); }
+
+  /* 1920x1080 stage, scaled to fit in live mode */
+  #viewport { position: fixed; inset: 0; display: grid; place-items: center; }
+  #stage {
+    position: relative; width: 1920px; height: 1080px; overflow: hidden;
+    background: var(--paper); transform-origin: center;
+  }
+  body.render #viewport { display: block; }
+  body.render #stage { transform: none !important; position: absolute; left: 0; top: 0; }
+
+  .scene { position: absolute; inset: 0; display: none; overflow: hidden; }
+  .scene.on { display: block; }
+  .scene.red   { background: var(--red); color: var(--white); }
+  .scene.paper { background: var(--paper); color: var(--ink); }
+
+  .rays {
+    position: absolute; inset: -60%; pointer-events: none;
+    background: repeating-conic-gradient(from 0deg at 50% 50%, currentColor 0deg 5deg, transparent 5deg 10deg);
+    opacity: .09;
+    -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 0%, transparent 60%);
+    mask-image: radial-gradient(circle at 50% 50%, #000 0%, transparent 60%);
+  }
+  .paper .rays { color: var(--red); }
+  .red .rays   { color: var(--white); opacity: .12; }
+
+  .wipe { position: absolute; inset: 0; background: var(--red); z-index: 9; }
+  .red .wipe { background: var(--paper); }
+
+  /* chapter layout */
+  .chapter { position: absolute; inset: 0; padding: 110px 140px; display: grid;
+             grid-template-columns: 1fr 520px; gap: 80px; align-items: center; }
+  .chapter.nofig { grid-template-columns: 1fr; }
+  .copy { position: relative; z-index: 2; }
+
+  .stamp {
+    display: inline-block; padding: 8px 22px; border: 6px solid currentColor;
+    font-family: var(--mono); font-weight: 700; font-size: 44px; letter-spacing: .12em;
+    transform: rotate(-4deg); transform-origin: left center; margin-bottom: 34px;
+  }
+  .paper .stamp { color: var(--red); }
+
+  .zh-h { font-family: var(--zh); font-weight: 900; font-size: 128px; line-height: 1.08; margin: 0 0 18px; }
+  .paper .zh-h { color: var(--red); text-shadow: 6px 6px 0 var(--white), 10px 10px 0 rgba(200,16,46,.22); }
+  .zh-h .ch { display: inline-block; }
+
+  .en-h { font-family: var(--display); font-size: 54px; letter-spacing: .08em; line-height: 1.15; margin: 0 0 34px; }
+  .paper .en-h { color: var(--red-ink); }
+
+  .cap { font-size: 30px; line-height: 1.45; max-width: 1100px; margin: 0;
+         border-left: 8px solid currentColor; padding-left: 26px; }
+  .paper .cap { border-color: var(--red); }
+
+  .fig { position: relative; z-index: 2; display: grid; place-items: center; }
+  .glyph {
+    font-family: var(--zh); font-weight: 900; font-size: 420px; line-height: 1;
+    color: var(--red); text-shadow: 12px 12px 0 var(--white), 18px 18px 0 rgba(200,16,46,.25);
+  }
+  .red .glyph { color: var(--white); text-shadow: 12px 12px 0 var(--red-ink); }
+  .glyph.en { font-family: var(--display); font-size: 300px; }
+
+  .poster-fig { width: 460px; aspect-ratio: 1072/1461; border: 10px solid var(--white); outline: 5px solid var(--red);
+                box-shadow: 22px 22px 0 var(--red); overflow: hidden; background: #eee; }
+  .poster-fig img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  .corner-stars { position: absolute; font-family: var(--zh); font-size: 70px; color: var(--red); opacity: .9; z-index: 2; }
+  .red .corner-stars { color: var(--white); }
+  .cs-tl { left: 50px; top: 40px; } .cs-br { right: 50px; bottom: 30px; }
+
+  /* title + end */
+  .center { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; z-index: 2; }
+  .title-zh { font-family: var(--zh); font-weight: 900; font-size: 190px; line-height: 1.05; margin: 0; letter-spacing: .04em; }
+  .title-en { font-family: var(--display); font-size: 74px; letter-spacing: .18em; margin: 18px 0 0; }
+  .title-sub { font-size: 30px; margin: 40px 0 0; opacity: .9; letter-spacing: .1em; }
+  .band { position: absolute; left: 0; right: 0; background: var(--white); color: var(--red); z-index: 3;
+          font-family: var(--zh); font-weight: 900; font-size: 34px; letter-spacing: .3em; padding: 14px 0; text-align: center; }
+  .band.top { top: 80px; } .band.bottom { bottom: 80px; }
+
+  .end-poster { width: 520px; aspect-ratio: 1072/1461; border: 10px solid var(--white); outline: 5px solid var(--red);
+                box-shadow: 22px 22px 0 var(--red); overflow: hidden; }
+  .end-poster img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .end-grid { display: grid; grid-template-columns: 520px 1fr; gap: 90px; align-items: center; text-align: left; padding: 0 140px; }
+  .end-zh { font-family: var(--zh); font-weight: 900; font-size: 96px; line-height: 1.15; margin: 0 0 24px; color: var(--red);
+            text-shadow: 6px 6px 0 var(--white); }
+  .end-en { font-family: var(--display); font-size: 40px; letter-spacing: .1em; color: var(--red-ink); margin: 0 0 30px; }
+  .end-small { font-size: 24px; color: var(--red-deep); margin: 0; }
+  .fin { position: absolute; bottom: 60px; left: 0; right: 0; text-align: center; font-family: var(--zh); font-weight: 900;
+         font-size: 44px; color: var(--red); letter-spacing: .4em; }
+
+  /* split scene */
+  .split-l, .split-r { position: absolute; top: 0; bottom: 0; width: 50%; display: grid; place-items: center; z-index: 2; }
+  .split-l { left: 0; background: var(--red); color: var(--white); }
+  .split-r { right: 0; background: var(--paper); color: var(--red); }
+  .split-word { font-family: var(--zh); font-weight: 900; font-size: 260px; line-height: 1; }
+  .split-sub { font-family: var(--display); font-size: 48px; letter-spacing: .1em; margin-top: 10px; }
+  .split-cap { position: absolute; left: 0; right: 0; bottom: 90px; z-index: 4; text-align: center; font-size: 30px; }
+  .split-cap span { display: inline-block; background: var(--white); color: var(--ink); padding: 14px 30px; border: 5px solid var(--red); box-shadow: 10px 10px 0 var(--red); max-width: 1300px; }
+
+  /* overlays */
+  #grain { position: absolute; inset: -220px; pointer-events: none; z-index: 20; opacity: .14; mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .7 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); }
+  #vignette { position: absolute; inset: 0; pointer-events: none; z-index: 21;
+    background: radial-gradient(ellipse at center, transparent 55%, rgba(60,0,10,.28) 100%); }
+  #progress { position: absolute; left: 0; bottom: 0; height: 8px; background: var(--red); z-index: 22; width: 0; }
+  #scanlines { position: absolute; inset: 0; z-index: 21; pointer-events: none; opacity: .06;
+    background: repeating-linear-gradient(0deg, #000 0 2px, transparent 2px 5px); }
+
+  #playOverlay { position: absolute; inset: 0; z-index: 30; display: grid; place-items: center; background: rgba(200,16,46,.92);
+    color: var(--white); cursor: pointer; text-align: center; }
+  #playOverlay .big { font-family: var(--zh); font-weight: 900; font-size: 160px; line-height: 1; }
+  #playOverlay .small { font-family: var(--display); font-size: 40px; letter-spacing: .2em; margin-top: 20px; }
+  #playOverlay .tiny { font-size: 22px; margin-top: 30px; opacity: .85; }
+  body.render #playOverlay, body.playing #playOverlay { display: none; }
+</style>
+</head>
+<body>
+<div id="viewport">
+  <div id="stage">
+    <div id="scenes"></div>
+    <div id="grain"></div>
+    <div id="scanlines"></div>
+    <div id="vignette"></div>
+    <div id="progress"></div>
+    <div id="playOverlay">
+      <div>
+        <div class="big">▶ 播放</div>
+        <div class="small">CLICK TO BEGIN THE LONG MARCH</div>
+        <div class="tiny">space: pause · ← →: seek · r: restart</div>
+      </div>
+    </div>
+  </div>
+</div>
+<audio id="audio" preload="auto" src="audio/track.mp3"></audio>
+
+<script>
+/* ============================================================
+   THE COMRADE'S LONG MARCH — a timeline-driven propaganda film
+   All motion is driven from a single clock (seconds) so it can be
+   played live or stepped frame-by-frame by render/render.mjs.
+   ============================================================ */
+
+const AUDIO_OFFSET = 0;   // seconds into the song at t=0. raise it to skip the intro.
+const FPS_HINT = 30;
+
+/* ---------- script ---------- */
+const CHAPTERS = [
+  { date: "2024.11.05", zh: "人民选择了胜利", en: "THE PEOPLE CHOOSE VICTORY",
+    cap: "the comrade backs the winning ticket. a quarter of a billion dollars is a small price for history. he jumps on stage in pennsylvania. the jump is recorded.",
+    bg: "paper", glyph: "胜" },
+  { date: "2024.11.12", zh: "效率部成立", en: "THE MINISTRY OF EFFICIENCY IS FOUNDED",
+    cap: "DOGE is proclaimed. two chairmen are appointed. one will leave on day one. the acronym is a dog. this is deliberate.",
+    bg: "red", glyph: "DOGE", glyphEn: true },
+  { date: "2025.01.20", zh: "同志进入宫殿", en: "THE COMRADE ENTERS THE PALACE",
+    cap: "a special government employee. one hundred and thirty days permitted. the desk is in the executive office building. the son is in the oval office.",
+    bg: "paper", glyph: "130", glyphEn: true },
+  { date: "2025.02.20", zh: "电锯时代", en: "THE AGE OF THE CHAINSAW",
+    cap: "a chainsaw is raised at CPAC. an agency is fed into the wood chipper. every worker must report five bullet points. many bullet points are received.",
+    bg: "red", glyph: "五" },
+  { date: "2025.03.11", zh: "宫殿草坪上的电动车", en: "AN ELECTRIC CAR ON THE PALACE LAWN",
+    cap: "the stock is down. the showrooms are picketed. the chairman purchases a red sedan on the south lawn. glorious support. the stock is still down.",
+    bg: "paper", poster: true },
+  { date: "2025.04.01", zh: "威斯康星的奶酪", en: "THE CHEESE OF WISCONSIN",
+    cap: "twenty million dollars. a foam cheese hat. million-dollar cheques handed to voters. the people of wisconsin vote otherwise. the comrade learns of judicial independence.",
+    bg: "red", glyph: "奶酪" },
+  { date: "2025.05.30", zh: "光荣退役", en: "AN HONORABLE DISCHARGE",
+    cap: "one hundred and thirty days complete. a golden key is presented in the oval office. a black eye is presented by a five-year-old. the comrade returns to industry.",
+    bg: "paper", glyph: "钥" },
+  { date: "2025.06.05", zh: "大分裂", en: "THE GREAT SPLIT", split: true,
+    cap: "the comrade calls the big beautiful bill a disgusting abomination. the chairman calls for the contracts. posts are made. posts are deleted. regret is expressed within a week." },
+  { date: "2025.07.05", zh: "美国党", en: "THE AMERICA PARTY",
+    cap: "the bill passes on the fourth. a party is declared on the fifth. the party fields no candidates. the party is a post.",
+    bg: "red", glyph: "党" },
+  { date: "2025.09 → 12", zh: "同志们重归于好", en: "THE COMRADES REUNITE",
+    cap: "a handshake at a memorial in september. a dinner at mar-a-lago by winter. \"lovely dinner.\" one hundred million dollars is pledged for the midterms. 2026 is going to be amazing.",
+    bg: "paper", poster: true },
+  { date: "2026.09.15", zh: "孟菲斯的宫殿", en: "THE PALACE IN MEMPHIS",
+    cap: "the comrade now lives in an airstream trailer beside the works. the factories by day, the data center by night. \"i am coming to you from the palace that i live in.\" the palace has wheels.",
+    bg: "red", glyph: "拖车" },
+];
+
+const TITLE_DUR = 7, CHAPTER_DUR = 8, END_DUR = 10;
+const DURATION = TITLE_DUR + CHAPTERS.length * CHAPTER_DUR + END_DUR;
+window.FILM_DURATION = DURATION;
+
+/* ---------- build ---------- */
+const stage  = document.getElementById("stage");
+const scenes = document.getElementById("scenes");
+const anims  = []; // { anim, start }
+let sceneList = []; // { el, start, end }
+
+function el(tag, cls, html) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (html != null) e.innerHTML = html;
+  return e;
+}
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c])); }
+function chars(s) { return [...s].map(c => `<span class="ch">${esc(c)}</span>`).join(""); }
+
+function reg(target, keyframes, opts, start) {
+  const a = target.animate(keyframes, { fill: "both", ...opts });
+  a.pause();
+  anims.push({ anim: a, start });
+  return a;
+}
+
+function addScene(cls, start, dur, fill) {
+  const s = el("div", "scene " + cls);
+  s.appendChild(el("div", "rays"));
+  fill(s);
+  const w = el("div", "wipe");
+  s.appendChild(w);
+  scenes.appendChild(s);
+  sceneList.push({ el: s, start, end: start + dur });
+  // rays slowly rotate for the whole scene
+  reg(s.querySelector(".rays"), [{ transform: "rotate(0deg)" }, { transform: "rotate(14deg)" }], { duration: dur * 1000 }, start);
+  // wipe reveals the scene
+  reg(w, [{ transform: "translateX(0)" }, { transform: "translateX(-101%)" }], { duration: 550, easing: "cubic-bezier(.7,0,.2,1)" }, start);
+  return s;
+}
+
+function popChars(container, start, delay0 = 0.55, step = 0.06) {
+  [...container.querySelectorAll(".ch")].forEach((c, i) => {
+    reg(c, [
+      { opacity: 0, transform: "scale(1.8) translateY(-20px)" },
+      { opacity: 1, transform: "scale(1) translateY(0)" }
+    ], { duration: 360, delay: (delay0 + i * step) * 1000, easing: "cubic-bezier(.2,1.4,.4,1)" }, start);
+  });
+}
+function stampIn(node, start, delay = 0.35) {
+  reg(node, [
+    { opacity: 0, transform: "rotate(-4deg) scale(2.2)" },
+    { opacity: 1, transform: "rotate(-4deg) scale(1)" }
+  ], { duration: 320, delay: delay * 1000, easing: "cubic-bezier(.3,1.6,.4,1)" }, start);
+}
+function revealLeft(node, start, delay, dur = 900) {
+  reg(node, [
+    { clipPath: "inset(0 100% 0 0)", opacity: .6 },
+    { clipPath: "inset(0 0% 0 0)",  opacity: 1 }
+  ], { duration: dur, delay: delay * 1000, easing: "linear" }, start);
+}
+function fadeUp(node, start, delay, dur = 600) {
+  reg(node, [
+    { opacity: 0, transform: "translateY(30px)" },
+    { opacity: 1, transform: "translateY(0)" }
+  ], { duration: dur, delay: delay * 1000, easing: "cubic-bezier(.2,.8,.2,1)" }, start);
+}
+
+/* title */
+addScene("red", 0, TITLE_DUR, (s) => {
+  const top = el("div", "band top", "★ 发帖强美 荣誉出品 · A $ERON PRODUCTION ★");
+  const bot = el("div", "band bottom", "一部关于效率、离别与重逢的纪录片");
+  const c = el("div", "center");
+  const box = el("div");
+  const zh = el("h1", "title-zh", chars("同志的长征"));
+  const en = el("div", "title-en", "THE COMRADE'S LONG MARCH");
+  const sub = el("div", "title-sub", "a documentary of efficiency, departure, and reunion · 2024 → 2026");
+  box.append(zh, en, sub); c.appendChild(box);
+  s.append(top, bot, c);
+  popChars(zh, 0, 0.7, 0.12);
+  revealLeft(en, 0, 1.6, 700);
+  fadeUp(sub, 0, 2.4);
+  reg(top, [{ transform: "translateY(-140px)" }, { transform: "translateY(0)" }], { duration: 600, delay: 300, easing: "cubic-bezier(.2,.8,.2,1)" }, 0);
+  reg(bot, [{ transform: "translateY(140px)" }, { transform: "translateY(0)" }], { duration: 600, delay: 300, easing: "cubic-bezier(.2,.8,.2,1)" }, 0);
+  reg(box, [{ transform: "scale(1)" }, { transform: "scale(1.05)" }], { duration: TITLE_DUR * 1000, easing: "linear" }, 0);
+});
+
+/* chapters */
+CHAPTERS.forEach((ch, i) => {
+  const start = TITLE_DUR + i * CHAPTER_DUR;
+
+  if (ch.split) {
+    addScene("paper", start, CHAPTER_DUR, (s) => {
+      const L = el("div", "split-l"); const R = el("div", "split-r");
+      const lb = el("div"); lb.append(el("div", "split-word", "分"), el("div", "split-sub", "THE COMRADE"));
+      const rb = el("div"); rb.append(el("div", "split-word", "裂"), el("div", "split-sub", "THE CHAIRMAN"));
+      L.appendChild(lb); R.appendChild(rb);
+      const stamp = el("div", "stamp", ch.date);
+      stamp.style.cssText = "position:absolute;left:140px;top:90px;z-index:5;color:#fff;border-color:#fff";
+      const en = el("div", "en-h", ch.en);
+      en.style.cssText = "position:absolute;left:50%;top:100px;transform:translateX(-50%);z-index:5;color:var(--red);font-size:64px;background:var(--white);padding:10px 34px;border:5px solid var(--red);box-shadow:10px 10px 0 var(--red);white-space:nowrap;";
+      const cap = el("div", "split-cap"); cap.appendChild(el("span", "", esc(ch.cap)));
+      s.append(L, R, stamp, en, cap);
+      reg(L, [{ transform: "translateX(0)" }, { transform: "translateX(-60px)" }], { duration: 1200, delay: 900, easing: "cubic-bezier(.3,1.5,.4,1)" }, start);
+      reg(R, [{ transform: "translateX(0)" }, { transform: "translateX(60px)" }], { duration: 1200, delay: 900, easing: "cubic-bezier(.3,1.5,.4,1)" }, start);
+      reg(lb, [{ transform: "rotate(0deg)" }, { transform: "rotate(-8deg)" }], { duration: 1200, delay: 900, easing: "cubic-bezier(.3,1.5,.4,1)" }, start);
+      reg(rb, [{ transform: "rotate(0deg)" }, { transform: "rotate(8deg)" }], { duration: 1200, delay: 900, easing: "cubic-bezier(.3,1.5,.4,1)" }, start);
+      stampIn(stamp, start, 0.4);
+      revealLeft(en, start, 0.6, 700);
+      fadeUp(cap, start, 2.0);
+    });
+    return;
+  }
+
+  addScene(ch.bg, start, CHAPTER_DUR, (s) => {
+    const grid = el("div", "chapter" + (ch.poster || ch.glyph ? "" : " nofig"));
+    const copy = el("div", "copy");
+    const stamp = el("div", "stamp", esc(ch.date));
+    const zh = el("h2", "zh-h", chars(ch.zh));
+    zh.style.fontSize = Math.min(128, Math.floor((ch.poster || ch.glyph ? 1000 : 1560) / [...ch.zh].length)) + "px";
+    const en = el("div", "en-h", esc(ch.en));
+    const cap = el("p", "cap", esc(ch.cap));
+    copy.append(stamp, zh, en, cap);
+    grid.appendChild(copy);
+
+    if (ch.poster) {
+      const fig = el("div", "fig");
+      const pf = el("div", "poster-fig"); pf.appendChild(Object.assign(el("img"), { src: "poster.png", alt: "" }));
+      fig.appendChild(pf); grid.appendChild(fig);
+      reg(pf, [{ transform: "rotate(-3deg) scale(.9)", opacity: 0 }, { transform: "rotate(-3deg) scale(1)", opacity: 1 }], { duration: 700, delay: 500, easing: "cubic-bezier(.2,1.2,.3,1)" }, start);
+      reg(pf.firstChild, [{ transform: "scale(1)" }, { transform: "scale(1.14)" }], { duration: CHAPTER_DUR * 1000, easing: "linear" }, start);
+    } else if (ch.glyph) {
+      const fig = el("div", "fig");
+      const g = el("div", "glyph" + (ch.glyphEn ? " en" : ""), esc(ch.glyph));
+      fig.appendChild(g); grid.appendChild(fig);
+      reg(g, [
+        { opacity: 0, transform: "scale(3) rotate(-10deg)" },
+        { opacity: 1, transform: "scale(1) rotate(-6deg)", offset: .25 },
+        { opacity: 1, transform: "scale(1.08) rotate(-6deg)" }
+      ], { duration: CHAPTER_DUR * 1000, delay: 700, easing: "cubic-bezier(.2,1,.3,1)" }, start);
+    }
+
+    s.append(el("div", "corner-stars cs-tl", "★"), el("div", "corner-stars cs-br", "★"), grid);
+    stampIn(stamp, start, 0.35);
+    popChars(zh, start, 0.55, 0.07);
+    revealLeft(en, start, 0.55 + [...ch.zh].length * 0.07 + 0.2, 700);
+    fadeUp(cap, start, 0.55 + [...ch.zh].length * 0.07 + 0.9);
+    reg(grid, [{ transform: "scale(1)" }, { transform: "scale(1.03)" }], { duration: CHAPTER_DUR * 1000, easing: "linear" }, start);
+  });
+});
+
+/* end */
+const END_START = TITLE_DUR + CHAPTERS.length * CHAPTER_DUR;
+addScene("paper", END_START, END_DUR, (s) => {
+  const c = el("div", "center");
+  const g = el("div", "end-grid");
+  const pf = el("div", "end-poster"); pf.appendChild(Object.assign(el("img"), { src: "poster.png", alt: "" }));
+  const txt = el("div");
+  const zh = el("h2", "end-zh", chars("发帖强美") + "<br>" + chars("建设史上最好的国家"));
+  const en = el("div", "end-en", "POST ON X TO MAKE AMERICA STRONG,<br>ALSO KNOWN AS THE BEST COUNTRY EVER.");
+  const sm = el("p", "end-small", "$ERON · 发帖强美 · not affiliated with elon musk, tesla, or any government. not financial advice. the rocket is a metaphor.");
+  txt.append(zh, en, sm); g.append(pf, txt); c.appendChild(g);
+  const fin = el("div", "fin", "★ 完 ★");
+  s.append(c, fin);
+  reg(pf, [{ transform: "rotate(-3deg) scale(.9)", opacity: 0 }, { transform: "rotate(-3deg) scale(1)", opacity: 1 }], { duration: 700, delay: 500, easing: "cubic-bezier(.2,1.2,.3,1)" }, END_START);
+  reg(pf.firstChild, [{ transform: "scale(1)" }, { transform: "scale(1.12)" }], { duration: END_DUR * 1000, easing: "linear" }, END_START);
+  popChars(zh, END_START, 0.8, 0.06);
+  revealLeft(en, END_START, 2.6, 900);
+  fadeUp(sm, END_START, 3.6);
+  fadeUp(fin, END_START, 5.0);
+  // final fade to red
+  const out = el("div"); out.style.cssText = "position:absolute;inset:0;background:var(--red);z-index:10;opacity:0;";
+  s.appendChild(out);
+  reg(out, [{ opacity: 0 }, { opacity: 1 }], { duration: 1200, delay: (END_DUR - 1.3) * 1000 }, END_START);
+});
+
+/* ---------- clock ---------- */
+const grain = document.getElementById("grain");
+const progress = document.getElementById("progress");
+
+function seek(t) {
+  t = Math.max(0, Math.min(DURATION, t));
+  for (const s of sceneList) s.el.classList.toggle("on", t >= s.start && t < s.end);
+  for (const { anim, start } of anims) {
+    const local = (t - start) * 1000;
+    // Only animations of the visible scene matter; others can sit anywhere.
+    anim.currentTime = Math.max(0, local);
+  }
+  // deterministic grain jitter
+  const f = Math.floor(t * 12);
+  grain.style.transform = `translate(${(f * 37) % 220}px, ${(f * 91) % 220}px)`;
+  progress.style.width = (t / DURATION * 100) + "%";
+  return t;
+}
+window.seek = seek;
+
+/* ---------- live playback ---------- */
+const params = new URLSearchParams(location.search);
+const RENDER = params.has("render");
+if (RENDER) document.body.classList.add("render");
+
+function fit() {
+  if (RENDER) return;
+  const sc = Math.min(innerWidth / 1920, innerHeight / 1080);
+  stage.style.transform = `scale(${sc})`;
+}
+addEventListener("resize", fit); fit();
+
+const audio = document.getElementById("audio");
+let playing = false, t0 = 0, tStart = 0, raf = 0;
+
+function now() { return performance.now() / 1000; }
+function tick() {
+  if (!playing) return;
+  const t = tStart + (now() - t0);
+  seek(t);
+  if (t >= DURATION) { pause(); return; }
+  raf = requestAnimationFrame(tick);
+}
+function play() {
+  document.body.classList.add("playing");
+  playing = true; t0 = now();
+  if (audio.readyState > 0 || audio.src) {
+    try { audio.currentTime = tStart + AUDIO_OFFSET; audio.play().catch(() => {}); } catch (_) {}
+  }
+  tick();
+}
+function pause() {
+  playing = false; cancelAnimationFrame(raf);
+  tStart = Math.min(DURATION, tStart + (now() - t0));
+  audio.pause();
+}
+function jump(dt) { const was = playing; if (was) pause(); tStart = Math.max(0, Math.min(DURATION, tStart + dt)); seek(tStart); if (was) play(); }
+
+if (!RENDER) {
+  document.getElementById("playOverlay").addEventListener("click", () => { tStart = 0; play(); });
+  addEventListener("keydown", (e) => {
+    if (e.code === "Space") { e.preventDefault(); playing ? pause() : play(); }
+    if (e.code === "ArrowRight") jump(5);
+    if (e.code === "ArrowLeft") jump(-5);
+    if (e.key === "r") { pause(); tStart = 0; seek(0); play(); }
+  });
+  seek(0);
+} else {
+  seek(0);
+}
+
+/* fonts must be loaded before frames are captured */
+window.FILM_READY = document.fonts.ready.then(() => {
+  const imgs = [...document.images].map(i => i.complete ? Promise.resolve() : new Promise(r => { i.onload = i.onerror = r; }));
+  return Promise.all(imgs).then(() => true);
+});
+</script>
+</body>
+</html>

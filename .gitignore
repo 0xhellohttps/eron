@@ -1,0 +1,8 @@
+render/node_modules/
+render/*.log
+render/preview.mp4
+film-silent.mp4
+film-master.mp4
+film.tmp.mp4
+audio/track.mp3
+.DS_Store

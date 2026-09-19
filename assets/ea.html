@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>EA is bullshit · holographic card</title>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Anonymous+Pro:wght@400;700&family=Noto+Sans+SC:wght@900&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --red: #c8102e; --red-ink: #6b0717; --paper: #f6f1e6; --white: #fff;
+    --t: 0;            /* seconds, driven by window.seek */
+    --hue: 0deg; --px: 50%; --py: 50%; --shift: 0%;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: #000; }
+  #stage {
+    position: relative; width: 1080px; height: 1350px; overflow: hidden;
+    background: var(--paper); font-family: "Anonymous Pro", monospace; color: var(--red);
+  }
+  .rays {
+    position: absolute; inset: -50%;
+    background: repeating-conic-gradient(from 0deg at 50% 50%, var(--red) 0deg 5deg, transparent 5deg 10deg);
+    opacity: .10; transform: rotate(calc(var(--t) * 6deg));
+    -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 0%, transparent 62%);
+    mask-image: radial-gradient(circle at 50% 50%, #000 0%, transparent 62%);
+  }
+  .frame { position: absolute; inset: 36px; border: 8px solid var(--red); outline: 4px solid var(--white); }
+  .band { position: absolute; left: 0; right: 0; background: var(--red); color: var(--white); text-align: center;
+          font-family: "Noto Sans SC", sans-serif; font-weight: 900; font-size: 30px; letter-spacing: .3em; padding: 16px 0; }
+  .band.top { top: 92px; } .band.bottom { bottom: 92px; letter-spacing: .12em; font-size: 26px; }
+
+  .title { position: absolute; left: 80px; right: 80px; top: 230px; text-align: center; margin: 0;
+           font-family: "Anton", Impact, sans-serif; font-size: 214px; line-height: .92; letter-spacing: .01em; }
+  .title span { display: block; }
+  /* holographic foil text: rainbow conic clipped to glyphs, hue + position driven by t */
+  .foil {
+    background:
+      radial-gradient(circle at var(--px) var(--py), rgba(255,255,255,.95) 0%, rgba(255,255,255,0) 30%),
+      repeating-linear-gradient(115deg, rgba(255,255,255,0) 0 2px, rgba(255,255,255,.45) 2px 3px, rgba(255,255,255,0) 3px 7px),
+      conic-gradient(from calc(var(--hue) * -1) at var(--px) var(--py), #ff0040, #ff8a00, #ffe600, #00ff85, #00cfff, #7a5cff, #ff00c8, #ff0040);
+    background-blend-mode: screen, overlay, normal;
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: saturate(1.5) contrast(1.05);
+    text-shadow: none;
+  }
+  .foil-shadow { position: absolute; left: 80px; right: 80px; top: 230px; text-align: center; margin: 0;
+           font-family: "Anton", Impact, sans-serif; font-size: 214px; line-height: .92; letter-spacing: .01em;
+           color: var(--red-ink); transform: translate(10px, 10px); z-index: 0; }
+  .foil-shadow span { display: block; }
+  .title { z-index: 1; }
+  .is { font-size: 120px !important; letter-spacing: .3em !important; margin: 10px 0 !important; }
+
+  .zh { position: absolute; left: 0; right: 0; top: 1000px; text-align: center; font-family: "Noto Sans SC", sans-serif;
+        font-weight: 900; font-size: 74px; color: var(--red); letter-spacing: .12em; text-shadow: 5px 5px 0 var(--white); }
+  .stamp { position: absolute; right: 90px; top: 168px; z-index: 3; padding: 10px 22px; border: 6px solid var(--red); color: var(--red);
+           font-weight: 700; font-size: 30px; letter-spacing: .1em; transform: rotate(-9deg); background: rgba(255,255,255,.85);
+           font-family: "Noto Sans SC", sans-serif; }
+  .foot { position: absolute; left: 0; right: 0; bottom: 178px; text-align: center; font-size: 24px; color: var(--red-ink); letter-spacing: .08em; }
+
+  /* whole-card foil sheen so the paper glints too */
+  .sheen { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: soft-light; opacity: .55;
+    background: radial-gradient(circle at var(--px) var(--py), rgba(255,255,255,.9) 0%, rgba(255,255,255,0) 45%); }
+  .grain { position: absolute; inset: -220px; pointer-events: none; opacity: .14; mix-blend-mode: multiply; transform: translate(var(--shift), 0);
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .7 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="rays"></div>
+  <div class="frame"></div>
+  <div class="band top">★ 中央委员会第二号指示 · DIRECTIVE NO. 2 ★</div>
+  <h1 class="foil-shadow" aria-hidden="true"><span>EFFECTIVE</span><span>ALTRUISM</span><span class="is">IS</span><span>BULLSHIT</span></h1>
+  <h1 class="title foil"><span>EFFECTIVE</span><span>ALTRUISM</span><span class="is">IS</span><span>BULLSHIT</span></h1>
+  <div class="stamp">委员会认证 · CERTIFIED</div>
+  <div class="zh">有效利他主义是扯淡</div>
+  <div class="foot">the committee has done the math. the math is bad. · post it (+3)</div>
+  <div class="band bottom">$ERON · 发帖强美 · POST TO MAKE AMERICA STRONG</div>
+  <div class="sheen"></div>
+  <div class="grain"></div>
+</div>
+<script>
+  const root = document.documentElement;
+  const LOOP = 6; // seconds for one full hue sweep, so the mp4 loops cleanly
+  window.CARD_DURATION = LOOP;
+  window.seek = (t) => {
+    const p = (t % LOOP) / LOOP;                 // 0..1
+    const a = p * Math.PI * 2;
+    root.style.setProperty("--t", t.toFixed(3));
+    root.style.setProperty("--hue", (p * 360).toFixed(1) + "deg");
+    root.style.setProperty("--px", (50 + 42 * Math.cos(a)).toFixed(2) + "%");
+    root.style.setProperty("--py", (50 + 30 * Math.sin(a)).toFixed(2) + "%");
+    root.style.setProperty("--shift", ((Math.floor(t * 12) * 37) % 220) + "px");
+  };
+  window.seek(0);
+  window.CARD_READY = document.fonts.ready.then(() => true);
+  // live preview: animate when opened in a browser
+  if (!location.search.includes("render")) {
+    const t0 = performance.now();
+    (function tick(){ window.seek((performance.now() - t0) / 1000); requestAnimationFrame(tick); })();
+  }
+</script>
+</body>
+</html>

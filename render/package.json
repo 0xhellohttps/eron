@@ -1,0 +1,10 @@
+{
+  "name": "eron-film-render",
+  "private": true,
+  "type": "module",
+  "scripts": { "render": "node render.mjs" },
+  "dependencies": {
+    "puppeteer-core": "^24.0.0",
+    "ffmpeg-static": "^5.2.0"
+  }
+}
